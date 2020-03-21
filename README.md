@@ -1,9 +1,9 @@
 # windSimFast
+A three-variate turbulent wind field (u,v and w components) is simulated in three-dimensions. 
 
 [![View Wind field simulation (the fast version) on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://se.mathworks.com/matlabcentral/fileexchange/68632-wind-field-simulation-the-fast-version)
 
-
-The present submission deals with the simulation of turbulent wind field (u,v,w, components) in 3-D (two dimensions for space and one for the time).  The computational efficiency of the simulation relies on Ref. [1], which leads to a significantly shorter simulation time than the function windSim, also available on fileExchange. However,  only the case of a regular 2D vertical grid normal to the flow is here considered.
+A turbulent wind field (u,v,w, components) in 3-D (two dimensions for space and one for the time) is simulated using random processes.  The computational efficiency of the simulation relies on Ref. [1], which leads to a significantly shorter simulation time than the function windSim, also available on fileExchange. However,  only the case of a regular 2D vertical grid normal to the flow is here considered.
 
 The submission contains:
 - An example file Example1 that illustrates simply how the output variables look like.
