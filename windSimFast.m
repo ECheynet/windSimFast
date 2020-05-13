@@ -43,7 +43,7 @@ function [u,v,w,nodes] = windSimFast(U,f,Su,Sv,Sw,CoeffDecay,Y,Z,varargin)
 % the ground in high winds. 
 % Quarterly Journal of the Royal Meteorological Society, 87(372), 194-211.
 % 
-% Author: E. Cheynet - UiS - last modified : 25-08-2018
+% Author: E. Cheynet - UiS - last modified : 13-05-2020
 
 %% Input parser 
 p = inputParser();
@@ -104,17 +104,12 @@ for ii=1:Nfreq
     
     [L,D]=ldl(S,'lower'); % a LDL decomposition is applied this time
     G = L*sqrt(D);
-    
-    theta = atan2(imag(G),real(G));
-    A(ii,:)= (G.*exp(-1i*theta))*exp(1i*2*pi*randPhase);
+    A(ii,:)= G*exp(1i*2*pi*randPhase);
     if ii==2,    fprintf(['Expected computation time: From ',num2str(round(min(toc(tStart))*Nfreq/2)),' to ',num2str(round(min(toc(tStart))*Nfreq)),' seconds \n']); end
 end
 
 %% Apply IFFT
-
-Nu = [A(1:Nfreq,:) ; real(A(Nfreq,:)); conj(flipud(A(2:end,:)))];
-% zero mean
-Nu(1,:) = 0;
+Nu = [A(1:Nfreq,:) ; real(A(Nfreq,:)); conj(flipud(A(2:Nfreq,:)))];
 speed=real(ifft(Nu).*sqrt(Nfreq./(dt)));
 
 u = speed(:,1:Nm);
