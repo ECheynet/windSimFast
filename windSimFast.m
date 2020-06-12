@@ -28,6 +28,12 @@ function [u,v,w,nodes] = windSimFast(U,f,Su,Sv,Sw,CoeffDecay,Y,Z,varargin)
 % 'Suw':  vector [Nm x 1] corresponding to the CPSD the u and w components
 % 'Svw': vector [Nm x 1] corresponding to the CPSD the v and w components
 % 'cohModel': string: the coherence model (so far, only 'Davenport' exist)
+% 'quadCoh_Cu' are decay coeficients for the quad-coherence of the u component.
+%  Example: quadCoh_Cu = [5 10];
+% 'quadCoh_Cv' are decay coeficients for the quad-coherence of the w component.
+%  Example: quadCoh_Cv = [5 10];
+% 'quadCoh_Cw' are decay coeficients for the quad-coherence of the w component.
+%  Example: quadCoh_Cw = [5 10];
 % 
 % References:
 % [1] Shinozuka, M., & Deodatis, G. (1991). 
@@ -43,11 +49,14 @@ function [u,v,w,nodes] = windSimFast(U,f,Su,Sv,Sw,CoeffDecay,Y,Z,varargin)
 % the ground in high winds. 
 % Quarterly Journal of the Royal Meteorological Society, 87(372), 194-211.
 % 
-% Author: E. Cheynet - UiS - last modified : 13-05-2020
+% Author: E. Cheynet - UiB - last modified : 12-06-2020
 
 %% Input parser 
 p = inputParser();
 p.CaseSensitive = false;
+p.addOptional('quadCoh_Cu',[]); % optional coefficients used for the quad-coherence
+p.addOptional('quadCoh_Cv',[]); % optional coefficients used for the quad-coherence
+p.addOptional('quadCoh_Cw',[]); % optional coefficients used for the quad-coherence
 p.addOptional('cohModel','Davenport');
 p.addOptional('Suw',zeros(size(Su)));
 p.addOptional('Svw',zeros(size(Su)));
@@ -56,7 +65,9 @@ p.parse(varargin{:});
 Suw = p.Results.Suw ;
 Svw = p.Results.Svw ;
 cohModel = p.Results.cohModel;
-
+quadCoh_Cu = p.Results.quadCoh_Cu;
+quadCoh_Cv = p.Results.quadCoh_Cv;
+quadCoh_Cw = p.Results.quadCoh_Cw;
 %% Create the structure "nodes"
 Nm = numel(Y(:)); % number of nodes in the grid, equal to Nyy*Nzz
 M = 3*Nm; % u,v and w are generated together, requiring 3 times more points than Nm (u,v and w are not necessarily independant)
@@ -91,6 +102,23 @@ for ii=1:Nfreq
     else
         error('In the present version, no other coherence model than the Davenport model has been implemented');
     end
+    
+    
+    if ~isempty(quadCoh_Cu)
+       quadCohU = getQuadCoh(meanU,dz,f(ii),quadCoh_Cu); % compute the quad-coherence
+       cohU = cohU + 1i.*quadCohU;       
+    end
+    
+    if ~isempty(quadCoh_Cv)
+       quadCohV = getQuadCoh(meanU,dz,f(ii),quadCoh_Cv); % compute the quad-coherence
+       cohU = cohU + 1i.*quadCohV;       
+    end
+    
+    if ~isempty(quadCoh_Cw)
+       quadCohW = getQuadCoh(meanU,dz,f(ii),quadCoh_Cw); % compute the quad-coherence
+       cohU = cohU + 1i.*quadCohW;       
+    end    
+    
     Suu = sqrt(Su(:,ii)*Su(:,ii)').*cohU;
     Svv = sqrt(Sv(:,ii)*Sv(:,ii)').*cohV;
     Sww = sqrt(Sw(:,ii)*Sw(:,ii)').*cohW;
@@ -126,5 +154,9 @@ w = -speed(:,2*Nm+1:3*Nm);
         % Combine them into the coherence matrix for lateral and vertical
         % separations
         coh = exp(-sqrt(ay.^2+az.^2).*f./meanU);
+    end
+   function [Qu] = getQuadCoh(meanU,dz,f,C)
+        dummy = -tril(ones(size(dz)),-1) + triu(ones(size(dz)),1);        
+        Qu = dummy.*(C(1).*f./meanU.*dz).*exp(-C(2).*f./meanU.*dz);
     end
 end
