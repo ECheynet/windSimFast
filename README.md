@@ -12,7 +12,7 @@ A turbulent wind field (u,v,w, components) in 3-D (two dimensions for space and 
 The submission contains:
 - An example file Example1 that illustrates simply how the output variables look like.
 - An example file Example2, which is more complete, and which simulates a 3-D turbulent wind field on a 7x7 grid.
-- An example file Example3, which is illustrates the implementation of the quad-coherence to generate a turbulent wind field.
+- An example file Example3, which illustrates the implementation of the quad-coherence to generate a turbulent wind field.
 - A data file exampleData.mat used in Example1.
 - The function windSimFast.m, which is used to generate the turbulent wind field.  A similar implementation of windSimFast.m was used in ref. [2].
 - The function getSamplingpara.m, which computes the time and frequency vectors.
