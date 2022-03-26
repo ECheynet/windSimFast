@@ -28,12 +28,6 @@ function [u,v,w,nodes] = windSimFast(U,f,Su,Sv,Sw,CoeffDecay,Y,Z,varargin)
 % 'Suw':  vector [Nm x 1] corresponding to the CPSD the u and w components
 % 'Svw': vector [Nm x 1] corresponding to the CPSD the v and w components
 % 'cohModel': string: the coherence model (so far, only 'Davenport' exist)
-% 'quadCoh_Cu' are decay coeficients for the quad-coherence of the u component.
-%  Example: quadCoh_Cu = [5 10];
-% 'quadCoh_Cv' are decay coeficients for the quad-coherence of the w component.
-%  Example: quadCoh_Cv = [5 10];
-% 'quadCoh_Cw' are decay coeficients for the quad-coherence of the w component.
-%  Example: quadCoh_Cw = [5 10];
 % 
 % References:
 % [1] Shinozuka, M., & Deodatis, G. (1991). 
@@ -51,12 +45,21 @@ function [u,v,w,nodes] = windSimFast(U,f,Su,Sv,Sw,CoeffDecay,Y,Z,varargin)
 % 
 % Author: E. Cheynet - UiB - last modified : 12-06-2020
 
+
+%% optional parameters removed from previous version
+% 'quadCoh_Cu' are decay coeficients for the quad-coherence of the u component.
+%  Example: quadCoh_Cu = [5 10];
+% 'quadCoh_Cv' are decay coeficients for the quad-coherence of the w component.
+%  Example: quadCoh_Cv = [5 10];
+% 'quadCoh_Cw' are decay coeficients for the quad-coherence of the w component.
+%  Example: quadCoh_Cw = [5 10];
+
 %% Input parser 
 p = inputParser();
 p.CaseSensitive = false;
-p.addOptional('quadCoh_Cu',[]); % optional coefficients used for the quad-coherence
-p.addOptional('quadCoh_Cv',[]); % optional coefficients used for the quad-coherence
-p.addOptional('quadCoh_Cw',[]); % optional coefficients used for the quad-coherence
+% p.addOptional('quadCoh_Cu',[]); % optional coefficients used for the quad-coherence
+% p.addOptional('quadCoh_Cv',[]); % optional coefficients used for the quad-coherence
+% p.addOptional('quadCoh_Cw',[]); % optional coefficients used for the quad-coherence
 p.addOptional('cohModel','Davenport');
 p.addOptional('Suw',zeros(size(Su)));
 p.addOptional('Svw',zeros(size(Su)));
@@ -65,9 +68,9 @@ p.parse(varargin{:});
 Suw = p.Results.Suw ;
 Svw = p.Results.Svw ;
 cohModel = p.Results.cohModel;
-quadCoh_Cu = p.Results.quadCoh_Cu;
-quadCoh_Cv = p.Results.quadCoh_Cv;
-quadCoh_Cw = p.Results.quadCoh_Cw;
+% quadCoh_Cu = p.Results.quadCoh_Cu;
+% quadCoh_Cv = p.Results.quadCoh_Cv;
+% quadCoh_Cw = p.Results.quadCoh_Cw;
 %% Create the structure "nodes"
 Nm = numel(Y(:)); % number of nodes in the grid, equal to Nyy*Nzz
 M = 3*Nm; % u,v and w are generated together, requiring 3 times more points than Nm (u,v and w are not necessarily independant)
@@ -90,6 +93,8 @@ meanU = 0.5*abs(bsxfun(@plus,nodes.U(:)',nodes.U(:))); % Mean wind velocity betw
 
 
 A = zeros(Nfreq,M);
+ZERO = zeros(Nm);
+
 for ii=1:Nfreq
     if ii==2,    tStart = tic; end
     randPhase = rand(M,1); % set random phase  
@@ -104,20 +109,20 @@ for ii=1:Nfreq
     end
     
     
-    if ~isempty(quadCoh_Cu)
-       quadCohU = getQuadCoh(meanU,dz,f(ii),quadCoh_Cu); % compute the quad-coherence
-       cohU = cohU + 1i.*quadCohU;       
-    end
-    
-    if ~isempty(quadCoh_Cv)
-       quadCohV = getQuadCoh(meanU,dz,f(ii),quadCoh_Cv); % compute the quad-coherence
-       cohU = cohU + 1i.*quadCohV;       
-    end
-    
-    if ~isempty(quadCoh_Cw)
-       quadCohW = getQuadCoh(meanU,dz,f(ii),quadCoh_Cw); % compute the quad-coherence
-       cohU = cohU + 1i.*quadCohW;       
-    end    
+%     if ~isempty(quadCoh_Cu)
+%        quadCohU = getQuadCoh(meanU,dz,f(ii),quadCoh_Cu); % compute the quad-coherence
+%        cohU = cohU + 1i.*quadCohU;       
+%     end
+%     
+%     if ~isempty(quadCoh_Cv)
+%        quadCohV = getQuadCoh(meanU,dz,f(ii),quadCoh_Cv); % compute the quad-coherence
+%        cohU = cohU + 1i.*quadCohV;       
+%     end
+%     
+%     if ~isempty(quadCoh_Cw)
+%        quadCohW = getQuadCoh(meanU,dz,f(ii),quadCoh_Cw); % compute the quad-coherence
+%        cohU = cohU + 1i.*quadCohW;       
+%     end    
     
     Suu = sqrt(Su(:,ii)*Su(:,ii)').*cohU;
     Svv = sqrt(Sv(:,ii)*Sv(:,ii)').*cohV;
@@ -125,7 +130,7 @@ for ii=1:Nfreq
     Suw2 = sqrt(Suw(:,ii)*Suw(:,ii)').*sqrt(cohU.*cohW); % The cross-coherence is here not very well defined, but this should be good enough at a first approximation
     Svw2 = sqrt(Svw(:,ii)*Svw(:,ii)').*sqrt(cohU.*cohW); % The cross-coherence is here not very well defined, but this should be good enough at a first approximation
     
-    ZERO = zeros(size(Suu));
+    
     S = [Suu,   ZERO,   Suw2;...
         ZERO,  Svv,    Svw2;...
         Suw2,  Svw2,   Sww];
@@ -137,7 +142,8 @@ for ii=1:Nfreq
 end
 
 %% Apply IFFT
-Nu = [A(1:Nfreq,:) ; real(A(Nfreq,:)); conj(flipud(A(2:Nfreq,:)))];
+% Nu = [zeros(1:Nfreq,1);A(1:Nfreq,:) ; real(A(Nfreq,:)); conj(flipud(A(1:Nfreq,:)))];
+Nu = [zeros(1,M);A(1:Nfreq-1,:) ; real(A(Nfreq,:)); conj(flipud(A(1:Nfreq-1,:)))];
 speed=real(ifft(Nu).*sqrt(Nfreq./(dt)));
 
 u = speed(:,1:Nm);
