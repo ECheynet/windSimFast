@@ -17,6 +17,7 @@ The submission contains:
 - The function getSamplingpara.m, which computes the time and frequency vectors.
 - The function KaimalModel.m, which generates the one-point auto and cross-spectral densities of the velocity fluctuations, following the Kaimal model [3]. I have corrected the cross-spectrum density formula used by Kaimal et al. so that the simulated friction velocity is equal to the target one. 
 - The function coherence used to estimate the root-mean-square coherence, the co-coherence and the quad-coherence.
+- The function write2bts to convert the data into a .bts file (binary data). This function is still under testing and I ignore if it performs well.
 
 Any comment, suggestion or question is welcomed.
 
