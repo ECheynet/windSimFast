@@ -17,7 +17,7 @@ dy = abs(median(diff(y)));
 if fid > 0
     
     % Headers
-    fwrite( fid, 7, 'int16');        % TurbSim format identifier (should = 7, just 'cause I like that number), INT(2)
+    fwrite( fid, 8, 'int16');        % TurbSim format identifier (E.C.: should = 8 to work on fast.Farm), INT(2)
     fwrite( fid, nz, 'int32');        % the number of grid points vertically, INT(4)
     fwrite( fid, ny, 'int32');        % the number of grid points laterally, INT(4)
     fwrite( fid, ntower, 'int32');        % the number of tower points, INT(4)
